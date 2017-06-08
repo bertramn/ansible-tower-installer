@@ -13,7 +13,7 @@ $windows = (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # base DNS settings for fake dns resolver
-  tld = ENV['TLD'] || 'local'
+  tld = ENV['TLD'] || 'vagrant'
 
   # we typically engage hostname managers on either platform
   if Vagrant.has_plugin?("vagrant-hostmanager")
@@ -28,6 +28,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   if Vagrant.has_plugin?("landrush")
     config.landrush.enabled = true
     config.landrush.tld = tld
+    config.landrush.guest_redirect_dns = false
   end
 
   # pesky proxy can be driven by envirnonment
@@ -54,7 +55,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "tower" do |tower|
     tower.vm.box      = "boxcutter/centos72"
-    tower.vm.hostname = "tower.vagrant.#{tld}"
+    tower.vm.hostname = "tower.#{tld}"
     tower.vm.network "private_network", ip: "192.168.33.93"
 
     # virtualbox image configuration

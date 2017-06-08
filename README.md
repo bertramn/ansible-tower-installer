@@ -14,3 +14,11 @@ Also on linux based systems install dnsmasq via package manager and then install
 
 
 To run this, simply punch in `vagrant up` and then follow the prompt.
+
+Once tower is installed, visit the tower dashbaord on https://tower.vagrant and try to add a licence file. This step will fail with some random "URL is invalid" error message.
+
+Only workaround found so far is to use curl and the Tower API to register the product.
+
+```sh
+curl -d @tower.license.txt -f -s -k -X POST -u 'admin:secret' -H 'Content-Type: application/json' https://tower.vagrant/api/v1/config/
+```

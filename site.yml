@@ -1,0 +1,58 @@
+---
+- hosts: vagrant
+
+  vars:
+    tower_version: 3.1.3
+    admin_password: secret
+  tasks:
+
+  - name: Install EPEL And Yum Config Manager
+    action: "{{ ansible_pkg_mgr }} name={{ item }} state=installed"
+    with_items:
+      - "http://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+      - yum-utils
+
+  - name: Enable EPEL Repository
+    shell: yum-config-manager --enable epel
+    changed_when: no
+
+  - name: Install Tower Prerequisites
+    action: "{{ ansible_pkg_mgr }} name={{ item }} state=installed"
+    with_items:
+      - htop
+      - nano
+      - python-pip
+      - ansible
+      - tar
+
+  - name: Download Ansible Installer
+    get_url:
+      url: "http://releases.ansible.com/ansible-tower/setup/ansible-tower-setup-{{ tower_version }}.tar.gz"
+      dest: "{{ download_dir | default('/tmp') }}"
+
+  - name: Unpack Ansible Tower Bundle
+    unarchive:
+      src: "{{ download_dir | default('/tmp') }}/ansible-tower-setup-{{ tower_version }}.tar.gz"
+      dest: "{{ download_dir | default('/tmp') }}"
+      remote_src: yes
+
+  - name: Set Admin Password
+    lineinfile:
+      path: "{{ download_dir | default('/tmp') }}/ansible-tower-setup-{{ tower_version }}/inventory"
+      regexp: "^admin_password="
+      line: "admin_password='{{ admin_password }}'"
+
+  - name: Set DB Password
+    lineinfile:
+      path: "{{ download_dir | default('/tmp') }}/ansible-tower-setup-{{ tower_version }}/inventory"
+      regexp: "^pg_password="
+      line: "pg_password='{{ admin_password }}'"
+
+  - name: Set MQ Password
+    lineinfile:
+      path: "{{ download_dir | default('/tmp') }}/ansible-tower-setup-{{ tower_version }}/inventory"
+      regexp: "^rabbitmq_password="
+      line: "rabbitmq_password='{{ admin_password }}'"
+
+  - name: Final Installation By Hand
+    debug: msg="Logon to target machine using 'vagrant ssh' and execute '{{ download_dir | default('/tmp') }}/ansible-tower-setup-{{ tower_version }}/setup.sh' as root to install Ansible"
